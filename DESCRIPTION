@@ -1,0 +1,35 @@
+Package: spadjustr
+Type: Package
+Title: Dual Time-Series Decomposition and Trend Transfer (R6 + ggplot2)
+Version: 0.1.0
+Authors@R: 
+    person("Your", "Name", email = "you@example.com", role = c("aut", "cre"))
+Description: >
+    Decompose a user-provided and benchmark time series into seasonal, trend,
+    and idiosyncratic components, then compute the ratio of the user trend
+    to the benchmark trend. Provides methods to forecast the trend ratio
+    (via exponential smoothing, SARIMA, Holt-Winters, and naive) and to
+    generate 1-step-ahead user-series predictions. Supports MA(6/12),
+    X-13ARIMA-SEATS, HP filter, STL, LOESS, and Prophet. Uses an R6 class API
+    and ggplot2 for visualization.
+Depends: R (>= 4.0)
+Imports:
+    R6,
+    stats,
+    ggplot2,
+    gridExtra,
+    zoo,
+    seasonal,
+    mFilter,
+    prophet,
+    forecast,
+    utils
+Suggests:
+    testthat,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.2

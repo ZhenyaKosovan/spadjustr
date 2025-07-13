@@ -1,0 +1,92 @@
+---
+title: "spadjustr: Dual Time-Series Decomposition and Trend Transfer"
+author: "Your Name"
+output:
+  rmarkdown::html_vignette:
+    keep_md: true
+vignette: >
+  %\VignetteIndexEntry{spadjustr: Dual Time-Series Decomposition and Trend Transfer}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4
+)
+library(spadjustr)
+library(ggplot2)
+library(forecast)
+library(gridExtra)
+```
+
+# Introduction
+
+This vignette illustrates how to use **spadjustr** to decompose two time series,
+swap in the benchmark trend, and visualize the results.
+
+```{r data-prep}
+# Example: AirPassengers vs. synthetic benchmark
+user_ts <- AirPassengers
+set.seed(123)
+benchmark_trend <- 100 + 0.5 * seq_along(user_ts)
+benchmark_seasonal <- 10 * sin(2 * pi * cycle(user_ts) / 12)
+benchmark_noise <- rnorm(length(user_ts), sd = 5)
+benchmark_ts <- ts(
+  benchmark_trend + benchmark_seasonal + benchmark_noise,
+  start = start(user_ts), frequency = frequency(user_ts)
+)
+```
+
+# Raw Series
+
+```{r raw-series, fig.cap="Raw user and benchmark series"}
+p1 <- autoplot(user_ts) + ggtitle("User Series (AirPassengers)") + xlab("Year") + ylab("Passengers")
+p2 <- autoplot(benchmark_ts) + ggtitle("Benchmark Series") + xlab("Year") + ylab("Value")
+grid.arrange(p1, p2, ncol = 1)
+```
+
+# Decomposition and Trend Replacement
+
+We demonstrate several decomposition methods:
+
+```{r methods-plot, fig.cap="Decomposition methods comparison"}
+methods <- c("ma12", "stl", "loess")
+plots <- lapply(methods, function(m) {
+  td <- ts_decomp(user_ts, benchmark_ts, method = m)
+  td$plot() + ggtitle(paste("Method:", m))
+})
+grid.arrange(grobs = plots, ncol = 1)
+```
+
+# Detailed STL Example
+
+```{r stl-detail, fig.cap="STL decomposition detail"}
+td_stl <- ts_decomp(user_ts, benchmark_ts, method = "stl")
+# Combine components and reconstructed series
+components <- list(
+  Original = user_ts,
+  UserTrend = td_stl$decomposed_user$trend,
+  BenchTrend = td_stl$decomposed_benchmark$trend,
+  Modified = td_stl$modified_user
+)
+df_comp <- spadjustr:::stack_ts(components)
+ggplot(df_comp, aes(x = time, y = value, color = series)) +
+  geom_line() + facet_wrap(~ series, scales = "free_y", ncol = 2) +
+  ggtitle("STL: Components and Reconstructed Series")
+# Prophet decomposition
+
+```{r prophet-example, fig.cap="Prophet method decomposition and trend swap", eval = FALSE}
+# The following code demonstrates the prophet method; uncomment to run if 'prophet' is installed:
+# td_prop <- ts_decomp(user_ts, benchmark_ts, method = "prophet")
+# td_prop$plot() + ggtitle("Method: prophet")
+```
+
+# Conclusion
+
+The **spadjustr** package provides an easy R6 interface to decompose time series,
+compare trends, and swap trend components. See `?TsDecomp` for more details.
+```
