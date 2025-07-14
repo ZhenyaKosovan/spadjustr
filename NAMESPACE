@@ -3,6 +3,7 @@
 S3method(plot,TsDecomp)
 export(TsDecomp)
 export(ts_decomp)
+export(fit_measures)
 import(R6)
 import(ggplot2)
 import(gridExtra)
